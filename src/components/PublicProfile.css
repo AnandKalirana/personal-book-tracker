@@ -1,0 +1,124 @@
+/* Public Profile Styles */
+
+.public-profile-view {
+  animation: slideUp 0.5s ease;
+  padding-bottom: 4rem;
+}
+
+.profile-header {
+  margin-bottom: 3rem;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 1.5rem;
+  padding: 0.5rem 0;
+  transition: transform 0.2s;
+}
+
+.back-btn:hover {
+  transform: translateX(-5px);
+}
+
+.profile-info-card {
+  background: var(--bg-card);
+  padding: 2.5rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+  box-shadow: var(--shadow-md);
+}
+
+.profile-avatar-large {
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  font-weight: 800;
+  color: white;
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
+}
+
+.profile-username {
+  margin: 0 0 0.5rem;
+  font-size: 2.2rem;
+  font-weight: 800;
+}
+
+.profile-bio {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin: 0 0 1.5rem;
+  max-width: 600px;
+}
+
+.profile-meta-tags {
+  display: flex;
+  gap: 1rem;
+}
+
+.meta-tag {
+  background: var(--bg-elevated);
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+}
+
+.book-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+}
+
+.no-books {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 4rem;
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  border: 1px dashed var(--border);
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 768px) {
+  .profile-info-card {
+    flex-direction: column;
+    text-align: center;
+    padding: 2rem;
+  }
+  
+  .profile-meta-tags {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .profile-username {
+    font-size: 1.8rem;
+  }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
