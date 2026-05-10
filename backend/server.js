@@ -15,6 +15,9 @@ dotenv.config();
 
 const app = express();
 
+// ✅ Required for express-rate-limit on Vercel
+app.set('trust proxy', 1);
+
 const NODE_ENV = process.env.NODE_ENV || 'production';
 
 // ================= SECURITY =================
