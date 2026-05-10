@@ -1,6 +1,5 @@
 /**
- * Personal Book Tracker - Backend Server
- * Railway-safe production setup
+ * Personal Book Tracker - Backend Server (Render Ready)
  */
 
 const express = require('express');
@@ -16,81 +15,46 @@ dotenv.config();
 
 const app = express();
 
+// ✅ Render provides PORT automatically
 const PORT = process.env.PORT;
 
-// ❌ IMPORTANT: DO NOT FALLBACK TO 8080 ON RAILWAY
-// Railway MUST control the port
+// Safety check
 if (!PORT) {
-  console.error('❌ PORT is not defined by environment');
+  console.error('❌ PORT not defined');
   process.exit(1);
 }
 
 const NODE_ENV = process.env.NODE_ENV || 'production';
 
-// ============================
-// SECURITY MIDDLEWARE
-// ============================
-app.use(
-  helmet({
-    crossOriginEmbedderPolicy: false,
-  })
-);
+// ================= SECURITY =================
+app.use(helmet());
+app.use(xss());
+app.use(hpp());
 
-// ============================
-// CORS
-// ============================
-const allowedOrigins = [
-  process.env.FRONTEND_URL,
-  'http://localhost:5173',
-].filter(Boolean);
+app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ extended: true }));
 
+// ================= CORS =================
 app.use(
   cors({
-    origin: function (origin, callback) {
-      if (!origin) return callback(null, true);
-
-      if (NODE_ENV === 'development' || allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-
-      return callback(new Error('CORS blocked this request'));
-    },
+    origin: process.env.FRONTEND_URL || '*',
     credentials: true,
   })
 );
 
-// ============================
-// BODY PARSERS
-// ============================
-app.use(express.json({ limit: '10kb' }));
-app.use(express.urlencoded({ extended: true, limit: '10kb' }));
-
-// ============================
-// SECURITY
-// ============================
-app.use(xss());
-app.use(hpp());
-
-// ============================
-// RATE LIMITING
-// ============================
+// ================= RATE LIMIT =================
 app.use(
   '/api',
   rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 100,
-    message: 'Too many requests, try later',
+    max: 200,
   })
 );
 
-// ============================
-// LOGGING
-// ============================
-app.use(morgan(NODE_ENV === 'production' ? 'combined' : 'dev'));
+// ================= LOGGING =================
+app.use(morgan('combined'));
 
-// ============================
-// ROUTES IMPORT
-// ============================
+// ================= ROUTES =================
 const authRoutes = require('./routes/authRoutes');
 const apiRoutes = require('./routes/apiRoutes');
 const bookRoutes = require('./routes/bookRoutes');
@@ -101,26 +65,14 @@ const socialRoutes = require('./routes/socialRoutes');
 
 const { authenticate } = require('./middleware/auth');
 
-// ============================
-// HEALTH ROUTES
-// ============================
 app.get('/', (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: 'Personal Book Tracker API Running',
-  });
+  res.status(200).send('OK');
 });
 
 app.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'OK',
-    time: new Date().toISOString(),
-  });
+  res.json({ status: 'OK' });
 });
 
-// ============================
-// ROUTES
-// ============================
 app.use('/api/auth', authRoutes);
 app.use('/api/search', apiRoutes);
 app.use('/api/social', socialRoutes);
@@ -130,57 +82,23 @@ app.use('/api/shelves', authenticate, shelfRoutes);
 app.use('/api/tags', authenticate, tagRoutes);
 app.use('/api/upload', authenticate, uploadRoutes);
 
-// ============================
-// 404 HANDLER
-// ============================
-app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    message: 'Route not found',
-  });
-});
-
-// ============================
-// ERROR HANDLER
-// ============================
+// ================= ERROR HANDLER =================
 const { errorHandler } = require('./middleware/errorHandler');
 app.use(errorHandler);
 
-// ============================
-// DATABASE (SAFE IMPORT ONLY)
-// ============================
+// ================= DATABASE =================
 const db = require('./config/database');
 
-// SAFE DB TEST (AFTER SERVER START)
-const testDB = () => {
-  db.query('SELECT 1', (err) => {
-    if (err) {
-      console.error('❌ MySQL connection failed:', err.message);
-    } else {
-      console.log('✅ MySQL connected successfully');
-    }
-  });
-};
-
-// ============================
-// START SERVER (RAILWAY SAFE)
-// ============================
-const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log('🌍 Railway deployment active');
-
-  // DB check AFTER server is ready
-  testDB();
+// safe async test (NOT blocking startup)
+db.query('SELECT 1', (err) => {
+  if (err) {
+    console.error('❌ DB connection failed:', err.message);
+  } else {
+    console.log('✅ MySQL connected successfully');
+  }
 });
 
-// ============================
-// GRACEFUL SHUTDOWN
-// ============================
-process.on('SIGTERM', () => {
-  console.log('SIGTERM received. Shutting down.');
-
-  server.close(() => {
-    console.log('HTTP server closed');
-    process.exit(0);
-  });
+// ================= START SERVER =================
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Server running on port ${PORT}`);
 });
