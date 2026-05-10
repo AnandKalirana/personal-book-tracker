@@ -56,12 +56,13 @@ const socialRoutes = require('./routes/socialRoutes');
 
 const { authenticate } = require('./middleware/auth');
 
-app.get('/', (req, res) => {
-  res.status(200).send('OK');
-});
-
-app.get('/health', (req, res) => {
-  res.json({ status: 'OK' });
+// Health check for Vercel
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'success', 
+    message: 'Backend is running on Vercel',
+    timestamp: new Date().toISOString()
+  });
 });
 
 app.use('/api/auth', authRoutes);
@@ -74,6 +75,14 @@ app.use('/api/tags', authenticate, tagRoutes);
 app.use('/api/upload', authenticate, uploadRoutes);
 
 // ================= ERROR HANDLER =================
+// 404 for unknown API routes
+app.use('/api/*', (req, res) => {
+  res.status(404).json({
+    success: false,
+    message: `API Route ${req.originalUrl} not found`
+  });
+});
+
 const { errorHandler } = require('./middleware/errorHandler');
 app.use(errorHandler);
 
