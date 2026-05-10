@@ -4,7 +4,8 @@
  * Includes JWT authentication header management
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// ✅ FIXED: Use relative path for Vercel deployment
+const API_BASE_URL = '/api';
 
 class ApiService {
   /**
@@ -57,7 +58,7 @@ class ApiService {
   static async request(endpoint, options = {}) {
     const url = `${API_BASE_URL}${endpoint}`;
     const token = this.getToken();
-    
+
     try {
       const headers = {
         'Content-Type': 'application/json',
@@ -150,18 +151,15 @@ class ApiService {
    * BOOK ENDPOINTS
    */
 
-  // Get all books with optional filters
   static async getAllBooks(filters = {}) {
     const params = new URLSearchParams(filters);
     return this.request(`/books?${params}`);
   }
 
-  // Get single book
   static async getBook(id) {
     return this.request(`/books/${id}`);
   }
 
-  // Create new book
   static async createBook(bookData) {
     return this.request('/books', {
       method: 'POST',
@@ -169,7 +167,6 @@ class ApiService {
     });
   }
 
-  // Update book
   static async updateBook(id, bookData) {
     return this.request(`/books/${id}`, {
       method: 'PUT',
@@ -177,39 +174,32 @@ class ApiService {
     });
   }
 
-  // Delete book
   static async deleteBook(id) {
     return this.request(`/books/${id}`, {
       method: 'DELETE',
     });
   }
 
-  // Search books locally
   static async searchBooks(query) {
     return this.request(`/books/search/${encodeURIComponent(query)}`);
   }
 
-  // Get books by genre
   static async getBooksByGenre(genre) {
     return this.request(`/books/genre/${genre}`);
   }
 
-  // Get books by status
   static async getBooksByStatus(status) {
     return this.request(`/books/status/${status}`);
   }
 
-  // Get statistics
   static async getStatistics() {
     return this.request('/books/stats');
   }
 
-  // Get all genres
   static async getAllGenres() {
     return this.request('/books/genres');
   }
 
-  // Toggle favorite
   static async toggleFavorite(id) {
     return this.request(`/books/${id}/favorite`, {
       method: 'PUT',
@@ -220,7 +210,6 @@ class ApiService {
    * GOOGLE BOOKS API ENDPOINTS
    */
 
-  // Search Google Books
   static async searchGoogleBooks(query, maxResults = 10) {
     const params = new URLSearchParams({
       query,
@@ -229,38 +218,31 @@ class ApiService {
     return this.request(`/search/google-books?${params}`);
   }
 
-  // Search by title
   static async searchGoogleBooksByTitle(title) {
     return this.request(`/search/google-books/title/${encodeURIComponent(title)}`);
   }
 
-  // Search by author
   static async searchGoogleBooksByAuthor(author) {
     return this.request(`/search/google-books/author/${encodeURIComponent(author)}`);
   }
 
-  // Search by ISBN
   static async searchGoogleBooksByISBN(isbn) {
     return this.request(`/search/google-books/isbn/${isbn}`);
   }
 
-  // Get Google Books details
   static async getGoogleBookDetails(bookId) {
     return this.request(`/search/google-books/${bookId}`);
   }
 
-  // Advanced search
   static async advancedSearch(filters) {
     const params = new URLSearchParams(filters);
     return this.request(`/search/advanced?${params}`);
   }
 
   /**
-   * HEALTH CHECK
+   * HEALTH CHECK + EXTRA
    */
-  /**
-   * Request password reset link
-   */
+
   static async forgotPassword(email) {
     return this.request('/auth/forgot-password', {
       method: 'POST',
@@ -268,9 +250,6 @@ class ApiService {
     });
   }
 
-  /**
-   * Reset password with token
-   */
   static async resetPassword(token, password) {
     return this.request(`/auth/reset-password/${token}`, {
       method: 'POST',
@@ -278,16 +257,10 @@ class ApiService {
     });
   }
 
-  /**
-   * Search for users
-   */
   static async searchUsers(query) {
     return this.request(`/social/search?q=${encodeURIComponent(query)}`);
   }
 
-  /**
-   * Get public profile and books
-   */
   static async getPublicProfile(username) {
     return this.request(`/social/profile/${username}`);
   }
