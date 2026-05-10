@@ -1,49 +1,41 @@
-/**
- * Database Configuration
- * Railway Production Safe MySQL Pool
- */
-
 const mysql = require('mysql2');
 const dotenv = require('dotenv');
 
 dotenv.config();
 
-console.log('DB_HOST:', process.env.DB_HOST);
-console.log('DB_PORT:', process.env.DB_PORT);
-console.log('DB_USER:', process.env.DB_USER);
-console.log('DB_NAME:', process.env.DB_NAME);
+// Safe parsing of port
+const DB_PORT = Number(process.env.DB_PORT) || 3306;
+
+// Validate env early (prevents silent crash)
+if (!process.env.DB_HOST || !process.env.DB_USER || !process.env.DB_NAME) {
+  console.error('❌ Missing DB environment variables');
+}
+
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  port: process.env.DB_PORT,
+  port: DB_PORT,
 
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
-
-  connectTimeout: 10000,
+  connectTimeout: 20000,
   enableKeepAlive: true,
 });
 
-// Test database connection
+// DO NOT crash app on import (Railway fix)
+// Just log connection status safely
 pool.getConnection((err, connection) => {
   if (err) {
-    console.error('❌ Database connection failed:', err.message);
-
-    if (err.code) {
-      console.error('❌ Error Code:', err.code);
-    }
-
+    console.error('❌ MySQL connection failed:', err.code || err.message);
     return;
   }
 
   console.log('✅ MySQL connected successfully');
 
-  if (connection) {
-    connection.release();
-  }
+  connection.release();
 });
 
 module.exports = pool;
