@@ -1,6 +1,6 @@
 /**
  * Personal Book Tracker - Backend Server
- * Railway Production Stable Version
+ * Railway Production Stable Version (FINAL FIX)
  */
 
 const express = require('express');
@@ -16,20 +16,19 @@ dotenv.config();
 
 const app = express();
 
-/**
- * 🚨 Railway REQUIREMENT:
- * MUST use process.env.PORT only
- */
+// ============================================
+// RAILWAY PORT FIX
+// ============================================
+
 const PORT = process.env.PORT;
 
-// Safety check
 if (!PORT) {
-  console.error("❌ PORT not found. Railway deployment failed.");
+  console.error('❌ PORT not found. Railway deployment failed.');
   process.exit(1);
 }
 
 // ============================================
-// SECURITY
+// SECURITY MIDDLEWARE
 // ============================================
 
 app.use(
@@ -47,7 +46,7 @@ app.use(xss());
 app.use(hpp());
 
 // ============================================
-// RATE LIMIT
+// RATE LIMITING
 // ============================================
 
 app.use(
@@ -65,7 +64,7 @@ app.use(
 app.use(morgan('dev'));
 
 // ============================================
-// HEALTH CHECK (IMPORTANT FOR RAILWAY)
+// HEALTH ROUTES (IMPORTANT FOR RAILWAY)
 // ============================================
 
 app.get('/', (req, res) => {
@@ -76,24 +75,21 @@ app.get('/', (req, res) => {
 });
 
 app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'OK' });
+  res.status(200).json({
+    status: 'OK',
+  });
 });
 
 // ============================================
-// DATABASE (SAFE INIT - NON BLOCKING)
+// DATABASE (NON-BLOCKING FIX)
 // ============================================
 
-const db = require('./config/database');
+const { pool, testConnection } = require('./config/database');
 
-db.getConnection((err, connection) => {
-  if (err) {
-    console.error('❌ MySQL connection failed:', err.message);
-    return;
-  }
-
-  console.log('✅ MySQL connected successfully');
-  connection.release();
-});
+// Run DB test AFTER server is up (prevents SIGTERM)
+setTimeout(() => {
+  testConnection();
+}, 2000);
 
 // ============================================
 // ROUTES
@@ -137,7 +133,7 @@ const { errorHandler } = require('./middleware/errorHandler');
 app.use(errorHandler);
 
 // ============================================
-// START SERVER (RAILWAY FIX)
+// START SERVER (RAILWAY FIXED)
 // ============================================
 
 app.listen(PORT, '0.0.0.0', () => {
