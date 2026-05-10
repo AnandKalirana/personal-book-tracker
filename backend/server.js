@@ -1,3 +1,8 @@
+/**
+ * Personal Book Tracker - Backend Server
+ * Railway Production Stable Version
+ */
+
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
@@ -12,20 +17,19 @@ dotenv.config();
 const app = express();
 
 /**
- * 🚨 IMPORTANT:
- * Railway ALWAYS provides process.env.PORT
- * We MUST use it directly (no fallback)
+ * 🚨 Railway REQUIREMENT:
+ * MUST use process.env.PORT only
  */
 const PORT = process.env.PORT;
 
-// Safety check (prevents silent crash)
+// Safety check
 if (!PORT) {
-  console.error('❌ Railway PORT is missing. App cannot start.');
+  console.error("❌ PORT not found. Railway deployment failed.");
   process.exit(1);
 }
 
 // ============================================
-// Security Middleware
+// SECURITY
 // ============================================
 
 app.use(
@@ -34,33 +38,16 @@ app.use(
   })
 );
 
-// ============================================
-// CORS
-// ============================================
-
-app.use(
-  cors({
-    origin: '*', // safe temporary fix for deployment
-    credentials: true,
-  })
-);
-
-// ============================================
-// Body Parsing
-// ============================================
+app.use(cors({ origin: '*', credentials: true }));
 
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
-
-// ============================================
-// Security layers
-// ============================================
 
 app.use(xss());
 app.use(hpp());
 
 // ============================================
-// Rate limiting
+// RATE LIMIT
 // ============================================
 
 app.use(
@@ -72,13 +59,13 @@ app.use(
 );
 
 // ============================================
-// Logging
+// LOGGING
 // ============================================
 
 app.use(morgan('dev'));
 
 // ============================================
-// Health check (VERY IMPORTANT FOR RAILWAY)
+// HEALTH CHECK (IMPORTANT FOR RAILWAY)
 // ============================================
 
 app.get('/', (req, res) => {
@@ -89,13 +76,11 @@ app.get('/', (req, res) => {
 });
 
 app.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'OK',
-  });
+  res.status(200).json({ status: 'OK' });
 });
 
 // ============================================
-// DATABASE (SAFE INIT)
+// DATABASE (SAFE INIT - NON BLOCKING)
 // ============================================
 
 const db = require('./config/database');
@@ -107,8 +92,7 @@ db.getConnection((err, connection) => {
   }
 
   console.log('✅ MySQL connected successfully');
-
-  if (connection) connection.release();
+  connection.release();
 });
 
 // ============================================
@@ -135,7 +119,7 @@ app.use('/api/tags', authenticate, tagRoutes);
 app.use('/api/upload', authenticate, uploadRoutes);
 
 // ============================================
-// 404
+// 404 HANDLER
 // ============================================
 
 app.use((req, res) => {
@@ -157,8 +141,8 @@ app.use(errorHandler);
 // ============================================
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server running on Railway port ${PORT}`);
-  console.log('🌍 Backend is live');
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log('🌍 Railway deployment active');
 });
 
 module.exports = app;
