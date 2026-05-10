@@ -1,5 +1,5 @@
 /**
- * Personal Book Tracker - Backend Server (Render Ready)
+ * Personal Book Tracker - Backend Server (Vercel Ready)
  */
 
 const express = require('express');
@@ -14,15 +14,6 @@ const rateLimit = require('express-rate-limit');
 dotenv.config();
 
 const app = express();
-
-// ✅ Render provides PORT automatically
-const PORT = process.env.PORT;
-
-// Safety check
-if (!PORT) {
-  console.error('❌ PORT not defined');
-  process.exit(1);
-}
 
 const NODE_ENV = process.env.NODE_ENV || 'production';
 
@@ -89,7 +80,7 @@ app.use(errorHandler);
 // ================= DATABASE =================
 const db = require('./config/database');
 
-// safe async test (NOT blocking startup)
+// Non-blocking DB check
 db.query('SELECT 1', (err) => {
   if (err) {
     console.error('❌ DB connection failed:', err.message);
@@ -98,7 +89,5 @@ db.query('SELECT 1', (err) => {
   }
 });
 
-// ================= START SERVER =================
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-});
+// ✅ IMPORTANT: Export app for Vercel (NO app.listen)
+module.exports = app;
