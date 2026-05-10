@@ -1,107 +1,48 @@
 # 📚 Personal Book Tracker
 
-A full-stack Personal Book Tracker web application built with React, Node.js, Express, and MySQL that allows users to securely manage and organize their reading journey.
-
-The application includes authentication, book management, Open Library API integration, Cloudinary image uploads, and production-level security practices.
+A full-stack, production-grade Book Tracker application built with **React (Vite)**, **Node.js/Express**, and **MySQL**. This app allows readers to organize their library, track reading progress, and discover new books via Google Books integration.
 
 ---
 
-# 🚀 Live Demo
+# 🚀 Live Deployment
 
-## Frontend
+**Website:** [https://personal-book-tracker-ten.vercel.app/](https://personal-book-tracker-ten.vercel.app/)
 
-Coming Soon
-
-## Backend API
-
-Coming Soon
+*Hosted on **Vercel** with **Railway MySQL**.*
 
 ---
 
 # ✨ Features
 
-## 📖 Book Management
+### 📖 Library Management
+* **Status Tracking:** Categorize books as *Reading*, *Completed*, or *Wishlist*.
+* **Custom Shelves:** Create and manage personal shelves (e.g., "Favorites", "To Buy").
+* **Tags:** Add mood or genre-based tags to your collection.
+* **Ratings & Notes:** Store your personal thoughts and 1-5 star ratings.
 
-* Add books manually
-* Edit book details
-* Delete books
-* Track reading progress
-* Store notes and ratings
-* Organize books into shelves/categories
+### 🔍 Discovery
+* **Google Books Search:** Instantly find books by title or author and add them to your library.
+* **Auto-Metadata:** Automatically fetches cover art, descriptions, page counts, and genres.
 
-## 🔍 Book Search Integration
+### 📊 Insights & Social
+* **Visual Dashboard:** Interactive charts showing your reading habits and collection stats.
+* **Public Profiles:** Share your reading journey with others via public links.
+* **User Search:** Find and explore other readers' collections.
 
-* Integrated with Open Library API
-* Search books by title or author
-* Auto-fetch book details and cover images
-
-## 🔐 Authentication & Security
-
-* Secure JWT authentication
-* Password hashing using bcrypt
-* Protected API routes
-* Rate limiting for API protection
-* Secure CORS configuration
-* Helmet.js security headers
-* XSS and HTTP Parameter Pollution protection
-* Input validation using express-validator
-* SQL Injection prevention using parameterized queries
-
-## ☁️ Image Uploads
-
-* Cloudinary integration for cloud image storage
-* Secure image upload handling
-
-## 🎨 Frontend
-
-* Responsive UI
-* Clean modern interface
-* React + Vite powered frontend
-* Dynamic search and filtering
+### 🎨 Modern UI/UX
+* **Themed Transitions:** Professional, smooth preloader with dark/light mode detection.
+* **Glassmorphism:** Premium modern interface with rich animations and responsive design.
+* **Dark Mode:** Built-in support for eye-friendly reading at night.
 
 ---
 
 # 🛠️ Tech Stack
 
-## Frontend
-
-* React
-* Vite
-* CSS
-
-## Backend
-
-* Node.js
-* Express.js
-
-## Database
-
-* MySQL
-* mysql2
-
-## Authentication
-
-* JWT (JSON Web Tokens)
-* bcryptjs
-
-## Security
-
-* Helmet
-* express-rate-limit
-* express-validator
-* xss-clean
-* hpp
-* cors
-
-## External Services
-
-* Open Library API
-* Cloudinary
-
-## Deployment
-
-* Vercel (Frontend)
-* Railway (Backend & MySQL)
+*   **Frontend:** React 18, Vite, Vanilla CSS (Premium Custom Design)
+*   **Backend:** Node.js, Express.js (Deployed as Serverless Functions)
+*   **Database:** MySQL (Railway)
+*   **Auth:** JWT (JSON Web Tokens) with Secure HTTP Headers
+*   **Security:** Helmet, express-rate-limit, bcryptjs, Parameterized Queries
 
 ---
 
@@ -109,198 +50,60 @@ Coming Soon
 
 ```bash
 personal-book-tracker/
-│
-├── frontend/
-│   ├── src/
-│   ├── public/
-│   ├── package.json
-│   └── vite.config.js
-│
-├── backend/
-│   ├── controllers/
-│   ├── middleware/
-│   ├── models/
-│   ├── routes/
-│   ├── database/
-│   ├── utils/
-│   ├── package.json
-│   └── server.js
-│
-├── .gitignore
-├── README.md
-└── package.json
+├── api/                # Vercel Serverless Entry Points
+├── backend/            # Core Backend Logic (Controllers, Models, Routes)
+├── database/           # SQL Schema and Migration Scripts
+├── public/             # Static Assets
+├── src/                # Frontend React Components & Logic
+├── index.html          # App Entry Point
+├── vercel.json         # Deployment Configuration
+└── vite.config.js      # Build Settings
 ```
 
 ---
 
-# ⚙️ Installation & Setup
+# ⚙️ Local Development
 
-## 1️⃣ Clone Repository
-
+### 1️⃣ Clone and Install
 ```bash
-git clone https://github.com/YOUR_USERNAME/personal-book-tracker.git
-```
-
-```bash
+git clone https://github.com/AnandKalirana/personal-book-tracker.git
 cd personal-book-tracker
-```
-
----
-
-# 🔧 Backend Setup
-
-## Navigate to Backend
-
-```bash
-cd backend
-```
-
-## Install Dependencies
-
-```bash
 npm install
 ```
 
-## Create Environment File
+### 2️⃣ Database Setup
+1. Create a MySQL database (Local or Cloud).
+2. Run the scripts in `/database/schema.sql` and `/database/migrate_features.sql`.
 
-Create a `.env` file inside the backend folder.
-
-Example:
-
+### 3️⃣ Environment Variables
+Create a `.env` in the root:
 ```env
-NODE_ENV=development
-PORT=5000
-
+# Database
+DATABASE_URL=mysql://user:pass@host:port/db
+# Or individual vars
 DB_HOST=localhost
-DB_PORT=3306
 DB_USER=root
-DB_PASSWORD=your_password
+DB_PASSWORD=
 DB_NAME=book_tracker
 
-JWT_SECRET=your_super_secure_secret
-
-FRONTEND_URL=http://localhost:5173
-
-CLOUDINARY_CLOUD_NAME=
-CLOUDINARY_API_KEY=
-CLOUDINARY_API_SECRET=
+# Security
+JWT_SECRET=your_secret_here
+NODE_ENV=development
 ```
 
-## Start Backend Server
-
+### 4️⃣ Start Development
 ```bash
-npm start
-```
-
----
-
-# 💻 Frontend Setup
-
-## Navigate to Frontend
-
-```bash
-cd frontend
-```
-
-## Install Dependencies
-
-```bash
-npm install
-```
-
-## Create Environment File
-
-Create `.env` inside frontend folder.
-
-```env
-VITE_API_URL=http://localhost:5000/api
-```
-
-## Start Frontend
-
-```bash
+# Start Frontend & Backend concurrently
 npm run dev
 ```
 
 ---
 
-# 🗄️ Database Setup
-
-1. Create a MySQL database.
-2. Import the SQL schema from:
-
-```bash
-backend/database/schema.sql
-```
-
----
-
-# 🔒 Security Features Implemented
-
-* Secure password hashing with bcrypt
-* JWT authentication
-* SQL Injection prevention
-* XSS protection
-* HTTP Parameter Pollution protection
-* Secure CORS configuration
-* API rate limiting
-* Environment variable protection
-* Secure error handling
-* Input validation & sanitization
-* Cloudinary secure uploads
-
----
-
-# 🌐 Deployment
-
-## Frontend
-
-Deployed using:
-
-* Vercel
-
-## Backend & Database
-
-Deployed using:
-
-* Railway
-
----
-
-# 📸 Screenshots
-
-Add screenshots here after deployment.
-
-Example:
-
-* Home Page
-* Login Page
-* Book Dashboard
-* Add Book Modal
-* Search Functionality
-
----
-
-# 🧠 Future Improvements
-
-* Reading statistics dashboard
-* Dark mode improvements
-* Reading goals tracking
-* Favorites & wishlist
-* Email verification
-* OAuth login
-* Advanced search filters
-* Mobile app version
-
----
-
 # 👨‍💻 Author
 
-## Anand Kalirana
-
-* IoT Engineering Student
-* Full Stack Developer
-* Cybersecurity Enthusiast
+**Anand Kalirana**
+*   IoT Engineering Student
+*   Full Stack Developer & Cybersecurity Enthusiast
 
 ---
 
