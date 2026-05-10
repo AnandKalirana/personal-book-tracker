@@ -1,7 +1,7 @@
 /**
  * Personal Book Tracker - Backend Server
- * Production-ready Express.js server with enterprise-level security
- * Version: 2.2.0
+ * Production-ready Express.js server with Railway compatibility fixes
+ * Version: 2.3.0 (fixed for deployment stability)
  */
 
 const express = require('express');
@@ -18,14 +18,14 @@ dotenv.config();
 
 const app = express();
 
+// Railway requires dynamic port
 const PORT = process.env.PORT || 8080;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
 // ============================================
-// Security Middleware Setup
+// Security Middleware
 // ============================================
 
-// Helmet Security Headers
 app.use(
   helmet({
     crossOriginEmbedderPolicy: false,
@@ -43,18 +43,12 @@ const allowedOrigins = [
 
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow requests without origin
-    if (!origin) {
-      return callback(null, true);
-    }
+    if (!origin) return callback(null, true);
 
-    if (
-      NODE_ENV === 'development' ||
-      allowedOrigins.includes(origin)
-    ) {
+    if (NODE_ENV === 'development' || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error('CORS policy blocked this request'));
+      callback(new Error('CORS blocked this request'));
     }
   },
   credentials: true,
@@ -73,10 +67,7 @@ app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 // Security Protections
 // ============================================
 
-// Prevent XSS
 app.use(xss());
-
-// Prevent HTTP Parameter Pollution
 app.use(hpp());
 
 // ============================================
@@ -90,21 +81,19 @@ const apiLimiter = rateLimit({
   legacyHeaders: false,
   message: {
     success: false,
-    message:
-      'Too many requests from this IP. Please try again later.',
+    message: 'Too many requests. Try again later.',
   },
 });
 
 app.use('/api', apiLimiter);
 
-// Auth-specific limiter
+// Auth limiter
 const authLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
   max: 20,
   message: {
     success: false,
-    message:
-      'Too many authentication attempts. Please try again later.',
+    message: 'Too many auth attempts. Try again later.',
   },
 });
 
@@ -115,56 +104,10 @@ app.use('/api/auth/register', authLimiter);
 // Logging
 // ============================================
 
-app.use(
-  morgan(NODE_ENV === 'production' ? 'combined' : 'dev')
-);
+app.use(morgan(NODE_ENV === 'production' ? 'combined' : 'dev'));
 
 // ============================================
-// Root & Health Routes
-// ============================================
-
-// Root route for Railway health checks
-app.get('/', (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: 'Personal Book Tracker API is running',
-    environment: NODE_ENV,
-  });
-});
-
-// Health check route
-app.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'OK',
-    timestamp: new Date().toISOString(),
-    environment: NODE_ENV,
-  });
-});
-
-// ============================================
-// Database Connection
-// ============================================
-
-const db = require('./config/database');
-
-// Test DB connection safely
-db.getConnection((err, connection) => {
-  if (err) {
-    console.error(
-      '❌ Database connection failed:',
-      err.message
-    );
-  } else {
-    console.log('✅ Database connected successfully');
-
-    if (connection) {
-      connection.release();
-    }
-  }
-});
-
-// ============================================
-// Routes
+// Routes (must come BEFORE DB dependency issues)
 // ============================================
 
 const bookRoutes = require('./routes/bookRoutes');
@@ -189,6 +132,52 @@ app.use('/api/tags', authenticate, tagRoutes);
 app.use('/api/upload', authenticate, uploadRoutes);
 
 // ============================================
+// Health Routes (IMPORTANT for Railway)
+// ============================================
+
+app.get('/', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Personal Book Tracker API is running',
+    environment: NODE_ENV,
+  });
+});
+
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'OK',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// ============================================
+// Database Connection (NON-BLOCKING FIX)
+// ============================================
+
+const db = require('./config/database');
+
+let dbConnected = false;
+
+db.getConnection((err, connection) => {
+  if (err) {
+    console.error('❌ Database connection failed:', err.message);
+    return;
+  }
+
+  console.log('✅ Database connected successfully');
+  dbConnected = true;
+
+  if (connection) connection.release();
+});
+
+// Optional readiness check
+app.get('/ready', (req, res) => {
+  res.json({
+    dbConnected,
+  });
+});
+
+// ============================================
 // 404 Handler
 // ============================================
 
@@ -204,17 +193,14 @@ app.use((req, res) => {
 // ============================================
 
 const { errorHandler } = require('./middleware/errorHandler');
-
 app.use(errorHandler);
 
 // ============================================
-// Start Server
+// START SERVER (RAILWAY FIX)
 // ============================================
 
 const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(
-    `🚀 Server running in ${NODE_ENV} mode on port ${PORT}`
-  );
+  console.log(`🚀 Server running in ${NODE_ENV} mode on port ${PORT}`);
 });
 
 // ============================================
