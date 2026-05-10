@@ -12,37 +12,51 @@ class ApiService {
    * Get stored auth token
    */
   static getToken() {
-    return localStorage.getItem('book_tracker_token');
+    try {
+      return localStorage.getItem('book_tracker_token');
+    } catch (e) {
+      return null;
+    }
   }
 
   /**
    * Set auth token
    */
   static setToken(token) {
-    localStorage.setItem('book_tracker_token', token);
+    try {
+      localStorage.setItem('book_tracker_token', token);
+    } catch (e) {}
   }
 
   /**
    * Remove auth token
    */
   static removeToken() {
-    localStorage.removeItem('book_tracker_token');
-    localStorage.removeItem('book_tracker_user');
+    try {
+      localStorage.removeItem('book_tracker_token');
+      localStorage.removeItem('book_tracker_user');
+    } catch (e) {}
   }
 
   /**
    * Get stored user
    */
   static getUser() {
-    const user = localStorage.getItem('book_tracker_user');
-    return user ? JSON.parse(user) : null;
+    try {
+      const user = localStorage.getItem('book_tracker_user');
+      return user ? JSON.parse(user) : null;
+    } catch (e) {
+      return null;
+    }
   }
 
   /**
    * Set stored user
    */
   static setUser(user) {
-    localStorage.setItem('book_tracker_user', JSON.stringify(user));
+    try {
+      localStorage.setItem('book_tracker_user', JSON.stringify(user));
+    } catch (e) {}
   }
 
   /**
