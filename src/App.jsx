@@ -61,6 +61,27 @@ function App() {
     document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
   }, [darkMode]);
 
+  // Handle preloader removal and fade-in
+  useEffect(() => {
+    const preloader = document.getElementById('preloader');
+    const root = document.getElementById('root');
+    
+    if (preloader) {
+      // Add a small delay for a smoother feel
+      const timeout = setTimeout(() => {
+        preloader.classList.add('fade-out');
+        if (root) root.style.opacity = '1';
+        
+        // Remove from DOM after transition
+        setTimeout(() => {
+          preloader.remove();
+        }, 500);
+      }, 100);
+      
+      return () => clearTimeout(timeout);
+    }
+  }, []);
+
   // Load data when authenticated
   useEffect(() => {
     if (isAuthenticated) {

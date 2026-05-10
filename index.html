@@ -21,8 +21,13 @@
     <meta property="og:description" content="Track all the books you have read with ratings, notes, and search" />
     <meta property="og:image" content="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='75'>📚</text></svg>" />
 
-    <!-- Styles -->
     <style>
+      :root {
+        --bg-light: #f8faff;
+        --bg-dark: #0a0f1e;
+        --primary: #6366f1;
+      }
+
       * {
         margin: 0;
         padding: 0;
@@ -32,20 +37,81 @@
       html, body, #root {
         height: 100%;
         width: 100%;
+        background-color: var(--bg-light);
       }
 
-      body {
-        margin: 0;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
-          'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans',
-          'Helvetica Neue', sans-serif;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
+      body.dark-mode {
+        background-color: var(--bg-dark);
+      }
+
+      #root {
+        transition: opacity 0.5s ease;
+      }
+
+      /* Clean Preloader */
+      .preloader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        background-color: inherit;
+        transition: opacity 0.4s ease, visibility 0.4s;
+      }
+
+      .loader-dots {
+        display: flex;
+        gap: 8px;
+      }
+
+      .dot {
+        width: 10px;
+        height: 10px;
+        background-color: var(--primary);
+        border-radius: 50%;
+        opacity: 0.3;
+        animation: dotPulse 1.4s infinite ease-in-out both;
+      }
+
+      .dot:nth-child(1) { animation-delay: -0.32s; }
+      .dot:nth-child(2) { animation-delay: -0.16s; }
+
+      @keyframes dotPulse {
+        0%, 80%, 100% { transform: scale(0); opacity: 0.3; }
+        40% { transform: scale(1); opacity: 1; }
+      }
+
+      .preloader.fade-out {
+        opacity: 0;
+        visibility: hidden;
       }
     </style>
+    <script>
+      // Immediate theme check to prevent white flash
+      (function() {
+        try {
+          const darkMode = localStorage.getItem('darkMode');
+          if (darkMode === 'true') {
+            document.body.classList.add('dark-mode');
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
-    <div id="root">Loading app... (If you see this, JavaScript failed to load)</div>
+    <div id="preloader" class="preloader">
+      <div class="loader-dots">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+    </div>
+    
+    <div id="root" style="opacity: 0;"></div>
     <script type="module" src="/src/main.jsx"></script>
     <script>
       if ('serviceWorker' in navigator) {
