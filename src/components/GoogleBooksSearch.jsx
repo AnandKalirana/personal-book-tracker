@@ -1,5 +1,5 @@
 /**
- * GoogleBooksSearch Component — CSS placeholder, better error handling
+ * BookSearch Component — Hybrid search with preloaded + cached + API fallback
  */
 
 import { useState } from 'react';
@@ -23,7 +23,7 @@ function GoogleBooksSearch({ onSelectBook }) {
     }
 
     const now = Date.now();
-    if (now - lastSearchTime < 1200) {
+    if (now - lastSearchTime < 800) {
       setError('Please wait a moment before searching again');
       return;
     }
@@ -33,28 +33,46 @@ function GoogleBooksSearch({ onSelectBook }) {
     setError(null);
 
     try {
+      // Try hybrid search first (preloaded + cached + Open Library)
       let response;
+      let usedHybrid = false;
 
-      switch (searchType) {
-        case 'title':
-          response = await ApiService.searchGoogleBooksByTitle(searchQuery);
-          break;
-        case 'author':
-          response = await ApiService.searchGoogleBooksByAuthor(searchQuery);
-          break;
-        default:
-          response = await ApiService.searchGoogleBooks(searchQuery, 12);
+      try {
+        response = await ApiService.hybridSearch(searchQuery, 15);
+        usedHybrid = true;
+      } catch (hybridErr) {
+        // Fallback to Google Books if hybrid fails
+        console.warn('Hybrid search failed, falling back to Google Books:', hybridErr.message);
+      }
+
+      if (!usedHybrid) {
+        switch (searchType) {
+          case 'title':
+            response = await ApiService.searchGoogleBooksByTitle(searchQuery);
+            break;
+          case 'author':
+            response = await ApiService.searchGoogleBooksByAuthor(searchQuery);
+            break;
+          default:
+            response = await ApiService.searchGoogleBooks(searchQuery, 12);
+        }
       }
 
       const books = response.data || [];
-      setSearchResults(books);
+      setSearchResults(books.map(b => ({
+        ...b,
+        // Normalize field names for the add-to-collection flow
+        google_books_id: b.google_books_id || b.open_library_key || `cache_${b.id}`,
+        cover_image_url: b.cover_image_url || null,
+        genre: b.genres || b.genre || '',
+      })));
 
       if (books.length === 0) {
         setError('No books found. Try a different search term.');
       }
     } catch (err) {
-      console.error('Google Books search failed:', err);
-      setError(err.message || 'Failed to search Google Books. Please try again.');
+      console.error('Search failed:', err);
+      setError(err.message || 'Search failed. Please try again.');
       setSearchResults([]);
     } finally {
       setLoading(false);
@@ -69,7 +87,7 @@ function GoogleBooksSearch({ onSelectBook }) {
 
   return (
     <div className="google-books-search">
-      <h3 className="search-title">🔍 Search Google Books</h3>
+      <h3 className="search-title">🔍 Search Books</h3>
 
       <form onSubmit={handleSearch} className="search-form">
         <div className="search-inputs">
@@ -105,7 +123,7 @@ function GoogleBooksSearch({ onSelectBook }) {
       {loading && (
         <div className="search-loading">
           <div className="spinner-small"></div>
-          Searching Google Books...
+          Searching books...
         </div>
       )}
 
@@ -144,7 +162,10 @@ function GoogleBooksSearch({ onSelectBook }) {
                       <span className="meta-badge">📄 {book.page_count}pp</span>
                     )}
                     {book.genre && (
-                      <span className="meta-badge">📂 {book.genre.split(',')[0]}</span>
+                      <span className="meta-badge">📂 {(book.genre || '').split(',')[0]}</span>
+                    )}
+                    {book.source === 'preloaded' && (
+                      <span className="meta-badge" style={{background:'var(--primary-light)',color:'var(--primary)',fontWeight:600}}>⭐ Curated</span>
                     )}
                   </div>
                 </div>

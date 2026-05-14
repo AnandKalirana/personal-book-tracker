@@ -56,6 +56,7 @@ const shelfRoutes = require('./routes/shelfRoutes');
 const tagRoutes = require('./routes/tagRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
 const socialRoutes = require('./routes/socialRoutes');
+const searchRoutes = require('./routes/searchRoutes');
 
 const { authenticate } = require('./middleware/auth');
 
@@ -70,6 +71,7 @@ app.get('/api/health', (req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/search', apiRoutes);
+app.use('/api/discover', searchRoutes);
 app.use('/api/social', socialRoutes);
 
 app.use('/api/books', authenticate, bookRoutes);

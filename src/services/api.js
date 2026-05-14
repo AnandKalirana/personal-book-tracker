@@ -254,6 +254,14 @@ class ApiService {
   }
 
   /**
+   * HYBRID SEARCH (New - uses cached + preloaded + API)
+   */
+  static async hybridSearch(query, limit = 20) {
+    const params = new URLSearchParams({ query, limit });
+    return this.request(`/discover/hybrid?${params}`);
+  }
+
+  /**
    * HEALTH CHECK + EXTRA
    */
 

@@ -1,6 +1,6 @@
 /**
  * Personal Book Tracker - Main App Component
- * With JWT authentication, smart search/sort, and modern UI
+ * With JWT authentication, hash routing, landing page, and modern UI
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -15,15 +15,28 @@ import Dashboard from './components/Dashboard';
 import PublicProfile from './components/PublicProfile';
 import UserSearch from './components/UserSearch';
 import ShelfManager from './components/ShelfManager';
+import LandingPage from './components/LandingPage';
 import ApiService from './services/api';
+
+// Simple hash router helper
+function getPage() {
+  const hash = window.location.hash.replace('#', '') || '/';
+  if (hash === '/login') return 'login';
+  if (hash === '/register') return 'register';
+  if (hash === '/dashboard') return 'dashboard';
+  return 'landing';
+}
 
 function App() {
   // Auth state
   const [user, setUser] = useState(() => ApiService.getUser());
   const [isAuthenticated, setIsAuthenticated] = useState(() => ApiService.isAuthenticated());
 
+  // Routing state
+  const [page, setPage] = useState(() => getPage());
+
   // Social state
-  const [viewingProfile, setViewingProfile] = useState(null); // username string or null
+  const [viewingProfile, setViewingProfile] = useState(null);
 
   // Books state
   const [books, setBooks] = useState([]);
@@ -67,20 +80,34 @@ function App() {
     const root = document.getElementById('root');
     
     if (preloader) {
-      // Add a small delay for a smoother feel
       const timeout = setTimeout(() => {
         preloader.classList.add('fade-out');
         if (root) root.style.opacity = '1';
-        
-        // Remove from DOM after transition
-        setTimeout(() => {
-          preloader.remove();
-        }, 500);
+        setTimeout(() => { preloader.remove(); }, 500);
       }, 100);
-      
       return () => clearTimeout(timeout);
     }
   }, []);
+
+  // Hash-based routing
+  useEffect(() => {
+    const handleHash = () => setPage(getPage());
+    window.addEventListener('hashchange', handleHash);
+    return () => window.removeEventListener('hashchange', handleHash);
+  }, []);
+
+  // Redirect authenticated users away from landing/login/register
+  useEffect(() => {
+    if (isAuthenticated && (page === 'landing' || page === 'login' || page === 'register')) {
+      window.location.hash = '#/dashboard';
+      setPage('dashboard');
+    }
+  }, [isAuthenticated, page]);
+
+  const navigate = (target) => {
+    window.location.hash = `#/${target}`;
+    setPage(target === '/' ? 'landing' : target);
+  };
 
   // Load data when authenticated
   useEffect(() => {
@@ -305,6 +332,7 @@ function App() {
   const handleAuthSuccess = (userData) => {
     setUser(userData);
     setIsAuthenticated(true);
+    navigate('dashboard');
   };
 
   const handleLogout = () => {
@@ -319,6 +347,7 @@ function App() {
     setShowForm(false);
     setEditingBook(null);
     setError(null);
+    navigate('landing');
   };
 
   const handleUserSelect = (username) => {
@@ -326,10 +355,19 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Not logged in — show auth modal
+  // === PUBLIC ROUTES (Not authenticated) ===
   if (!isAuthenticated) {
-    return <AuthModal onAuthSuccess={handleAuthSuccess} />;
+    if (page === 'login') {
+      return <AuthModal onAuthSuccess={handleAuthSuccess} initialMode="login" onNavigate={navigate} />;
+    }
+    if (page === 'register') {
+      return <AuthModal onAuthSuccess={handleAuthSuccess} initialMode="register" onNavigate={navigate} />;
+    }
+    // Default: Landing page
+    return <LandingPage onNavigate={navigate} />;
   }
+
+  // === AUTHENTICATED: Dashboard ===
 
   return (
     <div className="app" data-theme={darkMode ? 'dark' : 'light'}>

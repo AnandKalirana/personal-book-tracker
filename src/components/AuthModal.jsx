@@ -7,8 +7,8 @@ import { useState } from 'react';
 import ApiService from '../services/api';
 import './AuthModal.css';
 
-function AuthModal({ onAuthSuccess }) {
-  const [mode, setMode] = useState('login'); // 'login', 'register', or 'forgot'
+function AuthModal({ onAuthSuccess, initialMode = 'login', onNavigate }) {
+  const [mode, setMode] = useState(initialMode);
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -103,6 +103,10 @@ function AuthModal({ onAuthSuccess }) {
     setApiError('');
     setSuccessMessage('');
     setFormData({ username: '', email: '', password: '', confirmPassword: '' });
+    // Update hash when switching modes
+    if (onNavigate && (newMode === 'login' || newMode === 'register')) {
+      onNavigate(newMode);
+    }
   };
 
   return (
@@ -251,6 +255,13 @@ function AuthModal({ onAuthSuccess }) {
             </>
           )}
         </p>
+        {onNavigate && (
+          <p className="auth-switch" style={{ marginTop: '0.5rem' }}>
+            <button type="button" className="auth-switch-btn" onClick={() => onNavigate('landing')}>
+              ← Back to Home
+            </button>
+          </p>
+        )}
       </div>
     </div>
   );
