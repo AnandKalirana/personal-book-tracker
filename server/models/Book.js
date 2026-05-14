@@ -161,7 +161,9 @@ class Book {
       Object.keys(bookData).forEach(key => {
         if (allowedFields.includes(key)) {
           updateFields.push(`${key} = ?`);
-          values.push(bookData[key]);
+          // ✅ Convert empty strings to null for database compatibility
+          const value = bookData[key] === '' ? null : bookData[key];
+          values.push(value);
         }
       });
 
