@@ -1,14 +1,20 @@
 const mysql = require('mysql2/promise');
 
+const dotenv = require('dotenv');
+const path = require('path');
+
+// Load env from server directory
+dotenv.config({ path: path.join(__dirname, '..', '.env') });
+
 async function refinedMigration() {
     console.log('🚀 Starting Refined Migration for Railway Production...');
     
     const config = {
-        host: 'turntable.proxy.rlwy.net',
-        user: 'root',
-        password: 'MQyVbpbeBIgaHSOBynjXURIIiLQPjAmr',
-        database: 'railway',
-        port: 50694,
+        host: process.env.DB_HOST,
+        user: process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
+        database: process.env.DB_NAME,
+        port: Number(process.env.DB_PORT) || 3306,
         ssl: { rejectUnauthorized: false }
     };
 
