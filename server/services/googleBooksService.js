@@ -69,27 +69,10 @@ const searchBooks = async (query, maxResults = 10) => {
       books
     };
 
-  } catch (error) {
+    // ✅ LOG THE ERROR
     console.error('❌ Google Books API Error:', error.message);
 
-    // ✅ HANDLE 429
-    if (error.response?.status === 429) {
-      return {
-        success: false,
-        message: 'Too many requests. Please wait a few seconds.',
-        books: [],
-        total: 0
-      };
-    }
-
-    // ✅ HANDLE TIMEOUT
-    if (error.code === 'ECONNABORTED') {
-      console.warn('⚠️ Google Books timeout, attempting fallback...');
-    }
-
-    // ============================================
-    // 🌟 FALLBACK TO OPEN LIBRARY API
-    // ============================================
+    // ✅ ATTEMPT FALLBACK TO OPEN LIBRARY
     try {
       console.log(`🔄 Attempting fallback to OpenLibrary for query: "${query}"`);
       const openLibraryUrl = `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=${maxResults}`;
@@ -100,7 +83,7 @@ const searchBooks = async (query, maxResults = 10) => {
         }
       });
       
-      if (olResponse.data && olResponse.data.docs) {
+      if (olResponse.data && olResponse.data.docs && olResponse.data.docs.length > 0) {
         const books = olResponse.data.docs.map(doc => ({
           google_books_id: doc.key.replace('/works/', 'ol_'),
           title: doc.title || 'Unknown Title',
@@ -117,7 +100,7 @@ const searchBooks = async (query, maxResults = 10) => {
           info_link: `https://openlibrary.org${doc.key}`,
           rating: null,
           rating_count: null,
-          quality_score: 50 // ✅ Added to ensure caching
+          quality_score: 50
         }));
 
         const cacheKey = query.toLowerCase();
@@ -134,9 +117,19 @@ const searchBooks = async (query, maxResults = 10) => {
       console.error('❌ OpenLibrary Fallback Error:', olError.message);
     }
 
+    // FINAL FALLBACK: If both fail, check if we have ANYTHING in cache
+    if (error.response?.status === 429) {
+      return {
+        success: false,
+        message: 'Search is temporarily throttled by Google. Please try a different book or wait.',
+        books: [],
+        total: 0
+      };
+    }
+
     return {
       success: false,
-      message: 'Failed to fetch books from both Google Books and OpenLibrary',
+      message: 'Failed to fetch books from all sources',
       books: [],
       total: 0
     };
