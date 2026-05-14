@@ -93,7 +93,12 @@ const searchBooks = async (query, maxResults = 10) => {
     try {
       console.log(`🔄 Attempting fallback to OpenLibrary for query: "${query}"`);
       const openLibraryUrl = `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=${maxResults}`;
-      const olResponse = await axios.get(openLibraryUrl, { timeout: 15000 });
+      const olResponse = await axios.get(openLibraryUrl, { 
+        timeout: 15000,
+        headers: {
+          'User-Agent': 'PersonalBookTracker/1.0 (contact: anand.kalirana@gmail.com)'
+        }
+      });
       
       if (olResponse.data && olResponse.data.docs) {
         const books = olResponse.data.docs.map(doc => ({
@@ -111,7 +116,8 @@ const searchBooks = async (query, maxResults = 10) => {
           preview_link: null,
           info_link: `https://openlibrary.org${doc.key}`,
           rating: null,
-          rating_count: null
+          rating_count: null,
+          quality_score: 50 // ✅ Added to ensure caching
         }));
 
         const cacheKey = query.toLowerCase();
