@@ -69,6 +69,7 @@ const searchBooks = async (query, maxResults = 10) => {
       books
     };
 
+  } catch (error) {
     // ✅ LOG THE ERROR
     console.error('❌ Google Books API Error:', error.message);
 
