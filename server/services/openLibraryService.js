@@ -19,7 +19,10 @@ class OpenLibraryService {
 
       const response = await axios.get(OL_SEARCH_URL, {
         params: { q: query.trim(), limit, fields: 'key,title,author_name,first_publish_year,isbn,cover_i,number_of_pages_median,subject,publisher,language' },
-        timeout: 12000
+        timeout: 12000,
+        headers: {
+          'User-Agent': 'PersonalBookTracker/1.0 (https://github.com/AnandKalirana/personal-book-tracker)'
+        }
       });
 
       if (!response.data || !response.data.docs) {

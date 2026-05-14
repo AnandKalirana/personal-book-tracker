@@ -37,13 +37,30 @@ app.use(
 );
 
 // ================= RATE LIMIT =================
-app.use(
-  '/api',
-  rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 200,
-  })
-);
+// General API limiter
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 2000, // Very generous for general API
+  message: { success: false, message: 'Too many requests, please try again later' }
+});
+
+// Stricter limiter for Auth
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 50,
+  message: { success: false, message: 'Too many login attempts, please try again later' }
+});
+
+// Search/Discover limiter (even more generous)
+const searchLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000,
+  max: 100, // 100 searches per minute
+  message: { success: false, message: 'Too many searches, please wait a minute' }
+});
+
+app.use('/api/auth', authLimiter);
+app.use('/api/discover', searchLimiter);
+app.use('/api', apiLimiter);
 
 // ================= LOGGING =================
 app.use(morgan('combined'));

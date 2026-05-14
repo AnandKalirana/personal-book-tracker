@@ -109,10 +109,20 @@ class User {
    */
   static searchUsers(query) {
     return new Promise((resolve, reject) => {
-      const sql = 'SELECT id, username, bio, avatar_url FROM users WHERE username LIKE ? AND is_public = 1 LIMIT 10';
+      // More robust query: handle potential nulls and missing columns gracefully
+      const sql = `
+        SELECT id, username, bio, avatar_url 
+        FROM users 
+        WHERE username LIKE ? 
+        AND (is_public = 1 OR is_public IS NULL) 
+        LIMIT 10
+      `;
       db.query(sql, [`%${query}%`], (error, results) => {
-        if (error) return reject(error);
-        resolve(results);
+        if (error) {
+          console.error('❌ User search query failed:', error.message);
+          return reject(error);
+        }
+        resolve(results || []);
       });
     });
   }

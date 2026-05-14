@@ -72,7 +72,11 @@ function GoogleBooksSearch({ onSelectBook }) {
       }
     } catch (err) {
       console.error('Search failed:', err);
-      setError(err.message || 'Search failed. Please try again.');
+      if (err.status === 429) {
+        setError('Too many search requests. Please wait a minute and try again.');
+      } else {
+        setError(err.message || 'Search failed. Please try again.');
+      }
       setSearchResults([]);
     } finally {
       setLoading(false);

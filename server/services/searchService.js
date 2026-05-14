@@ -3,6 +3,7 @@
  * Flow: Cache (preloaded first) → Open Library API fallback → Cache result
  */
 const BookCache = require('../models/BookCache');
+const GoogleBooksService = require('./googleBooksService');
 const OpenLibraryService = require('./openLibraryService');
 
 const MIN_QUALITY_RESULTS = 3;
@@ -25,10 +26,10 @@ class SearchService {
         }
       }
 
-      // Step 3: If still not enough, fetch from Open Library
+      // Step 3: If still not enough, fetch from API (Google Books with OL fallback)
       if (results.length < MIN_QUALITY_RESULTS) {
         try {
-          const apiResult = await OpenLibraryService.search(query, 15);
+          const apiResult = await GoogleBooksService.searchBooks(query, 15);
           if (apiResult.success && apiResult.books.length > 0) {
             // Cache the API results (async, non-blocking)
             this.cacheApiResults(apiResult.books).catch(err =>
@@ -39,13 +40,17 @@ class SearchService {
             const existingTitles = new Set(results.map(r => r.title.toLowerCase()));
             for (const book of apiResult.books) {
               if (!existingTitles.has(book.title.toLowerCase())) {
-                results.push({ ...book, source: 'api', _fromApi: true });
+                results.push({ 
+                  ...book, 
+                  source: 'api', 
+                  _fromApi: true,
+                  quality_score: book.quality_score || 50 // Default for Google results
+                });
               }
             }
           }
         } catch (apiErr) {
           console.error('API fallback failed:', apiErr.message);
-          // Continue with whatever cache results we have
         }
       }
 
